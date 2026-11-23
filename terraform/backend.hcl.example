@@ -1,0 +1,3 @@
+# Shared partial backend config. Copy to backend.hcl (nothing secret, safe to commit)
+# and pass with: terraform init -backend-config=../../backend.hcl
+bucket = "CHANGE-ME"
