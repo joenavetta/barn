@@ -61,16 +61,24 @@ locals {
   access_enabled = { for name, k in local.access : name => k if contains(keys(local.id), k) }
 }
 
+# The controller stores a custom trunk as "every network except these" and
+# doesn't return tagged_networkconf_ids, so the trunk is described only by
+# what it excludes. An empty exclusion list must be null, not [].
+locals {
+  trunk_excluded = {
+    for name, nets in local.trunks_enabled : name => [
+      for k, v in local.id : v if k != "mgmt" && !contains(nets, k)
+    ]
+  }
+}
+
 resource "unifi_port_profile" "trunk" {
-  for_each               = local.trunks_enabled
-  name                   = each.key
-  native_networkconf_id  = local.id.mgmt
-  tagged_vlan_mgmt       = "custom"
-  tagged_networkconf_ids = [for k in each.value : local.id[k]]
-  excluded_networkconf_ids = [
-    for k, v in local.id : v if k != "mgmt" && !contains(each.value, k)
-  ]
-  poe_mode = "auto"
+  for_each                 = local.trunks_enabled
+  name                     = each.key
+  native_networkconf_id    = local.id.mgmt
+  tagged_vlan_mgmt         = "custom"
+  excluded_networkconf_ids = length(local.trunk_excluded[each.key]) > 0 ? local.trunk_excluded[each.key] : null
+  poe_mode                 = "auto"
 }
 
 resource "unifi_port_profile" "access" {
