@@ -1,7 +1,7 @@
 variable "trunk_parent" {
   description = "OPNsense NIC that carries the VLAN trunk to the switch: the LAN NIC that switch-01 plugs into (VP2420: igc0-igc3). Check Interfaces > Assignments"
   type        = string
-  default     = "igc1"
+  default     = "igc0" # LAN; igc1 is WAN
 }
 
 variable "networks_enabled" {
