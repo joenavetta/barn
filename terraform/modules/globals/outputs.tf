@@ -85,8 +85,8 @@ output "hosts" {
 # here gets a Dnsmasq reservation from stacks/opnsense; leave it "" until known.
 output "macs" {
   value = {
-    homeassist = "" # HA Yellow: Settings > System > Network, or the switch port in UniFi
-    sensorpush = "" # label on the gateway, or the switch port in UniFi
+    homeassist = "d8:3a:dd:63:6d:03" # HA Yellow: Settings > System > Network, or the switch port in UniFi
+    sensorpush = "20:c7:4f:04:32:78" # label on the gateway, or the switch port in UniFi
   }
 }
 
