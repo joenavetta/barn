@@ -1,0 +1,44 @@
+#cloud-config
+# Rendered by terraform/stacks/pve-01 (unifi). Runs once, on first boot.
+hostname: ${hostname}
+fqdn: ${fqdn}
+manage_etc_hosts: true
+ssh_authorized_keys: ${jsonencode(ssh_public_keys)}
+
+# Ubiquiti recommends 2 GB of swap; the Debian cloud image has none.
+swap:
+  filename: /swapfile
+  size: 2G
+
+package_update: true
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+  - podman
+  - slirp4netns
+  - uidmap
+  - curl
+
+write_files:
+  - path: /usr/local/sbin/install-unifi-os-server
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      if systemctl cat uosserver.service >/dev/null 2>&1; then
+        echo "UniFi OS Server already installed"; exit 0
+      fi
+      installer=/var/tmp/uos-server-installer
+      curl -fsSL -o "$installer" '${installer_url}'
+      %{~ if installer_sha != "" ~}
+      echo '${installer_sha}  '"$installer" | sha256sum -c -
+      %{~ endif ~}
+      chmod +x "$installer"
+      # The installer asks "Proceed? (y/N)".
+      echo y | "$installer"
+      rm -f "$installer"
+      systemctl enable --now uosserver
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+  - /usr/local/sbin/install-unifi-os-server

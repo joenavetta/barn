@@ -39,5 +39,5 @@ output "networks" {
 }
 
 output "ssh_public_keys" {
-  value = []
+  value = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/1d/NYgXuTGtxXHGEJNRViZWOc209+tLTqIuYu7q5G"]
 }

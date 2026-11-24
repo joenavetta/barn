@@ -67,3 +67,32 @@ variable "tags" {
   type    = list(string)
   default = []
 }
+
+variable "description" {
+  type    = string
+  default = null
+}
+
+variable "on_boot" {
+  description = "Start the VM when the node boots"
+  type        = bool
+  default     = true
+}
+
+variable "dns_servers" {
+  description = "Resolvers for a static address; empty keeps the template's"
+  type        = list(string)
+  default     = []
+}
+
+variable "dns_domain" {
+  description = "Search domain set with dns_servers"
+  type        = string
+  default     = null
+}
+
+variable "user_data_file_id" {
+  description = "Cloud-init user-data snippet (e.g. local:snippets/x.yaml). When set, ssh_public_keys is ignored; put the keys in the user-data"
+  type        = string
+  default     = null
+}
