@@ -12,10 +12,10 @@ until there's a wireless device that needs one.
 
 ## First apply: IoT (VLAN 40)
 
-1. In UniFi, create a local-access-only admin with an API key (Settings >
-   Control Plane > Integrations, or Admins & Users in newer builds). Store the
-   key in 1Password as `terraform.unifi.default`, an API Credential with the
-   key in `credential`.
+1. In the UniFi Network app, open **Integrations** (its own item in the left
+   sidebar on UniFi OS Server, not under Settings) and create an API key.
+   Store it in 1Password as `terraform.unifi.default`, an API Credential with
+   the key in `credential`.
 2. `terraform init -backend-config=../../backend.hcl && terraform apply`.
    This creates the VLAN-only "IoT" network (VLAN 40, DHCP guarding so only
    OPNsense answers) and the "Access: iot" and trunk port profiles.
