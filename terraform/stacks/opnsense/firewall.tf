@@ -91,10 +91,6 @@ locals {
 
   # Ingress interfaces that get a final logged block.
   blocked_ifaces = toset([for k in distinct([for r in local.rules : r.iface]) : k if contains(keys(var.interfaces), k)])
-
-  # Interfaces where Dnsmasq hands out leases. No automatic DHCP allow rule
-  # showed up for IoT with Dnsmasq, so allow DHCP explicitly.
-  dhcp_ifaces = setsubtract(local.blocked_ifaces, ["mgmt", "tailscale"])
 }
 
 resource "opnsense_firewall_filter" "pass" {
@@ -120,37 +116,6 @@ resource "opnsense_firewall_filter" "pass" {
       net    = each.value.dst
       port   = each.value.port
       invert = each.value.invert
-    }
-    log = false
-  }
-}
-
-# DHCP requests: DISCOVER comes from 0.0.0.0 to 255.255.255.255, renewals go to
-# the gateway, so match any source and destination on UDP 67. Sequence 90 puts
-# it ahead of the generated rules.
-resource "opnsense_firewall_filter" "dhcp" {
-  for_each    = local.dhcp_ifaces
-  enabled     = true
-  sequence    = 90
-  description = "DHCP to gateway (${each.key})"
-
-  interface = {
-    interface = [var.interfaces[each.key]]
-  }
-
-  filter = {
-    quick       = true
-    action      = "pass"
-    direction   = "in"
-    ip_protocol = "inet"
-    protocol    = "UDP"
-    source = {
-      net  = "any"
-      port = "68"
-    }
-    destination = {
-      net  = "any"
-      port = "67"
     }
     log = false
   }
