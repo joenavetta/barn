@@ -83,10 +83,14 @@ resource "unifi_port_profile" "access" {
 
 # ---- Wi-Fi ---------------------------------------------------------------
 
-data "unifi_ap_group" "default" {}
+data "unifi_ap_group" "default" {
+  count = var.wlans_enabled ? 1 : 0
+  name  = "All APs" # UniFi's default AP group; check the name before enabling SSIDs
+}
 
 data "unifi_client_qos_rate" "default" {
-  name = "Default"
+  count = var.wlans_enabled ? 1 : 0
+  name  = "Default"
 }
 
 # SSIDs come later (var.wlans_enabled); the IoT devices so far are wired.
@@ -114,9 +118,9 @@ resource "unifi_wlan" "this" {
   security      = "wpapsk"
   passphrase    = data.onepassword_item.wifi[each.key].password
   network_id    = local.id[each.value.network]
-  user_group_id = data.unifi_client_qos_rate.default.id
+  user_group_id = data.unifi_client_qos_rate.default[0].id
   ap_group = {
-    ids = [data.unifi_ap_group.default.id]
+    ids = [data.unifi_ap_group.default[0].id]
   }
 
   # IoT: WPA2 + 2.4 GHz-friendly settings for older devices.
