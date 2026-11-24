@@ -23,7 +23,7 @@ output "onepassword" {
       unifi          = "terraform.unifi.default"
       opnsense       = "terraform.opnsense.default"
       tailscale      = "terraform.tailscale.default" # OAuth client: username = client ID, credential = secret
-      wifi_main      = "unifi.wifi.main"
+      wifi_home      = "unifi.wifi.home"
       wifi_iot       = "unifi.wifi.iot"
       wifi_guest     = "unifi.wifi.guest"
     }

@@ -90,10 +90,16 @@ resource "unifi_port_profile" "access" {
 }
 
 # ---- Wi-Fi ---------------------------------------------------------------
+# One SSID per client network. Management, Servers and Cameras stay wired.
+# Passphrases come from 1Password (unifi.wifi.<key>); names from var.ssids.
+#
+# Band steering moved from the SSID to the AP in UniFi Network 10, so it isn't
+# set here. Keep it off on the APs: IoT devices that only do 2.4 GHz get
+# confused when the AP pushes them to 5 GHz.
 
 data "unifi_ap_group" "default" {
   count = var.wlans_enabled ? 1 : 0
-  name  = "All APs" # UniFi's default AP group; check the name before enabling SSIDs
+  name  = "All APs" # UniFi's default AP group
 }
 
 data "unifi_client_qos_rate" "default" {
@@ -101,28 +107,51 @@ data "unifi_client_qos_rate" "default" {
   name  = "Default"
 }
 
-# SSIDs come later (var.wlans_enabled); the IoT devices so far are wired.
-data "onepassword_item" "wifi" {
-  for_each = var.wlans_enabled ? {
-    main  = module.globals.onepassword.items.wifi_main
-    iot   = module.globals.onepassword.items.wifi_iot
-    guest = module.globals.onepassword.items.wifi_guest
-  } : {}
-  vault = module.globals.onepassword.vault
-  title = each.value
-}
-
 locals {
   wlans = {
-    main  = { ssid = "CHANGE-ME", network = "trusted", iot = false, guest = false }
-    iot   = { ssid = "CHANGE-ME-iot", network = "iot", iot = true, guest = false }
-    guest = { ssid = "CHANGE-ME-guest", network = "guest", iot = false, guest = true }
+    # Phones, laptops, tablets. WPA2/WPA3 mixed; 6 GHz clients use WPA3.
+    home = {
+      network = "trusted"
+      bands   = ["5g", "6g"]
+      wpa3    = true
+      iot     = false
+      isolate = false
+    }
+    # Smart plugs, speakers and other IoT. WPA2 only, and 2.4 GHz for the
+    # devices that can't do 5 GHz. Not isolated: Home Assistant has to reach
+    # these devices, and some of them talk to each other.
+    iot = {
+      network = "iot"
+      bands   = ["2g", "5g"]
+      wpa3    = false
+      iot     = true
+      isolate = false
+    }
+    # Visitors. WPA2 for older phones; clients can't see each other, and
+    # OPNsense lets the Guest VLAN reach only DNS and the internet.
+    guest = {
+      network = "guest"
+      bands   = ["2g", "5g"]
+      wpa3    = false
+      iot     = false
+      isolate = true
+    }
   }
+
+  wlans_enabled = var.wlans_enabled ? {
+    for k, w in local.wlans : k => w if contains(keys(local.id), w.network)
+  } : {}
+}
+
+data "onepassword_item" "wifi" {
+  for_each = local.wlans_enabled
+  vault    = module.globals.onepassword.vault
+  title    = module.globals.onepassword.items["wifi_${each.key}"]
 }
 
 resource "unifi_wlan" "this" {
-  for_each      = var.wlans_enabled ? local.wlans : {}
-  name          = each.value.ssid
+  for_each      = local.wlans_enabled
+  name          = var.ssids[each.key]
   security      = "wpapsk"
   passphrase    = data.onepassword_item.wifi[each.key].password
   network_id    = local.id[each.value.network]
@@ -131,14 +160,23 @@ resource "unifi_wlan" "this" {
     ids = [data.unifi_ap_group.default[0].id]
   }
 
-  # IoT: WPA2 + 2.4 GHz-friendly settings for older devices.
-  enhanced_iot = each.value.iot
-  wpa3 = each.value.iot ? null : {
-    support    = true
-    transition = true
-  }
-  pmf_mode = each.value.iot ? "disabled" : "optional"
+  # The provider no longer defaults these on a new SSID, so set them.
+  enabled    = true
+  hide_ssid  = false
+  is_guest   = false # UniFi's guest portal; isolation is done below and on OPNsense
+  wlan_bands = each.value.bands
 
-  # Guest: clients can't see each other.
-  l2_isolation = each.value.guest
+  wpa = {
+    mode = "wpa2"
+  }
+  wpa3 = {
+    support    = each.value.wpa3
+    transition = each.value.wpa3
+  }
+  # enhanced_iot forces WPA2, PMF off and DTIM 1 for older IoT radios.
+  enhanced_iot = each.value.iot
+  pmf_mode     = each.value.iot ? "disabled" : "optional"
+
+  bss_transition = true # 802.11v roaming hints between the three APs
+  l2_isolation   = each.value.isolate
 }

@@ -18,10 +18,6 @@ is deferred; delete it in the PR that finishes it.
 
 ## Terraform globals
 
-- [ ] **Land the network globals** (`networks`, `hosts`, `proxied_apps`) from
-  the network draft. Then switch `terraform/stacks/pve-01/main.tf` from its
-  local Management IPs to `module.globals.networks` / `hosts`. The draft
-  already names the switch `switch-01` (10.42.1.2).
 - [ ] **Cloudflare item name mismatch.** Globals reads
   `terraform.cloudflare.default`, but the vault item is
   `terraform.cloudflare.dns`. Rename one of them before running the
@@ -39,9 +35,16 @@ is deferred; delete it in the PR that finishes it.
   `opnsense_unbound_forward`. The provider can't manage Dnsmasq DHCP ranges,
   so those stay manual.
 
-## UniFi
+## UniFi and Wi-Fi
 
-- [ ] **`unifi` stack.** Create the `terraform.unifi.default` API key on the
-  UniFi OS Server (https://unifi.home.cowshed.cc:11443), then build
-  `terraform/stacks/unifi` (networks, port profiles, SSIDs) from the network
-  draft.
+- [ ] **Admin devices on Trusted.** Give Joe's phone and laptop Dnsmasq
+  reservations on Trusted and list them in the opnsense `admin_devices`
+  variable, so they can reach Management and Servers from Wi-Fi.
+- [ ] **mDNS between Trusted and IoT.** AirPlay, casting and HomeKit discovery
+  need an mDNS repeater (os-mdns-repeater) on OPNsense for Trusted and IoT.
+  The firewall already allows Trusted to IoT.
+- [ ] **AP settings in Terraform.** Band steering off (per AP since UniFi
+  Network 10) and the "Trunk: AP" port profile on the AP switch ports, with
+  `unifi_device` / `unifi_device_port`. Both are manual for now.
+- [ ] **Unused switch ports.** Add a "Disabled" port profile for spare ports,
+  and make Trusted, not Management, the native network on ordinary ports.
