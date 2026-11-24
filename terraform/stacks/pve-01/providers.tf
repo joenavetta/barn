@@ -30,6 +30,10 @@ provider "proxmox" {
   endpoint  = module.globals.proxmox_nodes["pve-01"].endpoint
   api_token = data.onepassword_item.proxmox.credential
 
+  # TEMPORARY (2026-11-23): pve-01 still has its self-signed cert. Remove once
+  # it has a Let's Encrypt cert via ACME (see README).
+  insecure = true
+
   # Snippet uploads (cloud-init user-data) go over SSH. With an API token the
   # provider can't infer the SSH user, so it must be set.
   ssh {

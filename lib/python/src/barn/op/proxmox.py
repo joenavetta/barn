@@ -17,9 +17,12 @@ PVE_TOKEN_ID = "tf"
 PVE_ROLE = "TerraformProv"
 # Privileges for the bpg/proxmox provider; check its docs when upgrading PVE.
 PVE_PRIVS = " ".join([
-    "Datastore.AllocateSpace", "Datastore.AllocateTemplate", "Datastore.Audit",
+    # Datastore.Allocate: the file resource reads /storage/<id> before uploading snippets.
+    "Datastore.Allocate", "Datastore.AllocateSpace", "Datastore.AllocateTemplate",
+    "Datastore.Audit",
     "Pool.Allocate", "Sys.Audit", "Sys.Console", "Sys.Modify",
-    "VM.Allocate", "VM.Audit", "VM.Clone", "VM.Config.CDROM", "VM.Config.Cloudinit",
+    "VM.Allocate", "VM.Audit", "VM.Clone", "VM.GuestAgent.Audit",
+    "VM.Config.CDROM", "VM.Config.Cloudinit",
     "VM.Config.CPU", "VM.Config.Disk", "VM.Config.HWType", "VM.Config.Memory",
     "VM.Config.Network", "VM.Config.Options", "VM.Migrate", "VM.PowerMgmt", "SDN.Use",
 ])

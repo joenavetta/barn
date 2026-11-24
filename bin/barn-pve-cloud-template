@@ -16,6 +16,11 @@ SNIPPETS=/var/lib/vz/snippets
 IMAGE=/var/lib/vz/template/iso/$(basename "$IMAGE_URL")
 
 mkdir -p "$SNIPPETS"
+# Terraform uploads cloud-init snippets to `local`; enable that content type if missing.
+content=$(awk '/^[a-z]+: /{s=($2=="local")} s && $1=="content"{print $2}' /etc/pve/storage.cfg)
+if [[ ,$content, != *,snippets,* ]]; then
+  pvesm set local --content "${content:+$content,}snippets"
+fi
 [[ -f $IMAGE ]] || wget -O "$IMAGE" "$IMAGE_URL"
 
 # Vendor data: make sure the guest agent is installed on first boot.

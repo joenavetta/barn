@@ -8,12 +8,30 @@ terraform init -backend-config=../../backend.hcl
 terraform plan
 ```
 
+## TODO: real certificate
+
+pve-01 uses `insecure = true` in `providers.tf` for now because it still
+serves its self-signed cert. Next step: ACME via Terraform with the bpg
+resources `proxmox_virtual_environment_acme_account`, `_acme_dns_plugin` and
+`_acme_certificate`. Use Cloudflare DNS-01 with a DNS-edit token scoped to
+cowshed.cc, stored in 1Password (e.g. `proxmox.acme.cloudflare`). One ACME
+account covers both nodes, and Proxmox renews the cert on its own. Then remove
+`insecure`. pve-02 needs the same.
+
+Open decisions: the Let's Encrypt contact email, and which Cloudflare token
+(globals expects `terraform.cloudflare.default`; the vault has
+`terraform.cloudflare.dns`).
+
 ## Prerequisites
 
 - The Debian 13 cloud-init template (VMID 9000 by default) built with
-  `bin/barn-pve-cloud-template` on pve-01.
-- The `local` datastore allows the `snippets` content type (the template script
-  already uses it). Snippets upload over SSH as `root` through your SSH agent.
+  `bin/barn-pve-cloud-template` on pve-01. A reinstalled node has no template,
+  so rebuild it: copy `bin/barn-pve-cloud-template` to the node and run
+  `barn-pve-cloud-template 9000 debian-13 https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2`.
+- The `local` datastore allows the `snippets` content type. The template script
+  enables it; otherwise run
+  `pvesm set local --content iso,vztmpl,backup,import,snippets`. Snippets upload
+  over SSH as `root` through your SSH agent.
 - `module.globals.ssh_public_keys` holds your admin key, or the VM has no SSH
   login.
 
