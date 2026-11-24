@@ -28,6 +28,17 @@ is deferred; delete it in the PR that finishes it.
   cloudflare stack. `docs/secrets.md` has the same old names
   (`terraform.cloudflare.default`, `caddy.acme.dns01`).
 
+## OPNsense DNS and DHCP
+
+- [ ] **Static entries in Terraform.** Add a MAC (for DHCP devices) to each
+  entry in the globals `hosts` map. The opnsense stack then creates one
+  `opnsense_dnsmasq_host` per host. With a MAC it's a DHCP reservation, and
+  without one it's a DNS name only. Import the entries made by hand
+  (switch-01, pve-01, pve-02, unifi) rather than recreating them. Optionally
+  manage the Unbound forward (`home.cowshed.cc` to 10.42.1.1:53053) with
+  `opnsense_unbound_forward`. The provider can't manage Dnsmasq DHCP ranges,
+  so those stay manual.
+
 ## UniFi
 
 - [ ] **`unifi` stack.** Create the `terraform.unifi.default` API key on the
