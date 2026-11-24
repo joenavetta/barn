@@ -4,13 +4,8 @@ locals {
   node = "pve-01"
 
   # Management is the untagged native network (UniFi "Default"), so no VLAN tag.
-  # TODO: read these from module.globals.networks/hosts once the network
-  # globals land in barn.
-  mgmt = {
-    cidr    = "10.42.1.0/24"
-    gateway = "10.42.1.1"
-  }
-  unifi_ip = "10.42.1.5"
+  mgmt     = module.globals.networks.mgmt
+  unifi_ip = module.globals.hosts.unifi
 }
 
 # --- UniFi OS Server --------------------------------------------------------
