@@ -80,7 +80,7 @@ sentences on what it is and where it's used.
 | `unifi.wifi.home` | Password | unifi | Home SSID passphrase (Trusted VLAN) |
 | `unifi.wifi.iot` | Password | unifi | IoT SSID passphrase (IoT VLAN) |
 | `unifi.wifi.guest` | Password | unifi | Guest SSID passphrase (Guest VLAN) |
-| `unifi.wifi.cameras` | Password | unifi | Camera-only key on the IoT SSID (Cameras VLAN) |
+| `unifi.wifi.cameras` | Password | unifi | Cameras SSID passphrase (Cameras VLAN) |
 
 ## Rotation and cleanup
 

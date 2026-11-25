@@ -41,7 +41,7 @@ locals {
     "Trunk: gateway" = ["trusted", "servers", "proxy", "iot", "cameras", "guest", "exitnode"]
     # pve-01 and pve-02 (vmbr0 VLAN-aware): host on Management, guests tagged.
     "Trunk: proxmox" = ["servers", "proxy", "iot", "exitnode"]
-    # U7 APs: the SSIDs' VLANs, plus Cameras for the camera key on the IoT SSID.
+    # U7 APs: one VLAN per SSID.
     "Trunk: AP" = ["trusted", "iot", "guest", "cameras"]
   }
   access = {
@@ -72,11 +72,14 @@ locals {
   }
 }
 
+# A trunk that excludes nothing is "Allow All" (auto), not "custom" with an
+# empty list: the controller adds every new network to the exclusions of each
+# custom profile, and a null exclusion list wouldn't take them back out.
 resource "unifi_port_profile" "trunk" {
   for_each                 = local.trunks_enabled
   name                     = each.key
   native_networkconf_id    = local.id.mgmt
-  tagged_vlan_mgmt         = "custom"
+  tagged_vlan_mgmt         = length(local.trunk_excluded[each.key]) > 0 ? "custom" : "auto"
   excluded_networkconf_ids = length(local.trunk_excluded[each.key]) > 0 ? local.trunk_excluded[each.key] : null
   poe_mode                 = "auto"
 }
@@ -90,8 +93,8 @@ resource "unifi_port_profile" "access" {
 }
 
 # ---- Wi-Fi ---------------------------------------------------------------
-# One SSID per client network. Management and Servers stay wired; Wi-Fi
-# cameras reach the Cameras VLAN through a second key on the IoT SSID.
+# One SSID per client network: Home, IoT, Guest and Cameras (for the Wi-Fi
+# cameras). Management and Servers stay wired.
 # Passphrases come from 1Password (unifi.wifi.<key>); names from var.ssids.
 #
 # Band steering moved from the SSID to the AP in UniFi Network 10, so it isn't
@@ -125,8 +128,6 @@ locals {
     # Smart plugs, speakers and other IoT. WPA2 only, and 2.4 GHz for the
     # devices that can't do 5 GHz. Not isolated: Home Assistant has to reach
     # these devices, and some of them talk to each other.
-    # Wi-Fi cameras join this SSID too, with their own key (unifi.wifi.cameras)
-    # that puts them on the Cameras VLAN: no internet, and no extra SSID.
     iot = {
       network = "iot"
       bands   = ["2g", "5g"]
@@ -143,37 +144,35 @@ locals {
       iot     = false
       isolate = true
     }
+    # Wi-Fi cameras (Reolink E1 Pro). WPA2, isolated from each other; the
+    # Cameras VLAN has no internet, and the Synology pulls the streams.
+    cameras = {
+      network = "cameras"
+      bands   = ["2g", "5g"]
+      wpa3    = false
+      iot     = false
+      isolate = true
+    }
   }
 
   wlans_enabled = var.wlans_enabled ? {
     for k, w in local.wlans : k => w if contains(keys(local.id), w.network)
   } : {}
 
-  # Private pre-shared keys: extra passphrases on an SSID, each landing on
-  # its own VLAN (item = unifi.wifi.<item>). Once an SSID has any, its normal
-  # passphrase has to be listed too, on the SSID's own network.
-  ppsk = [
-    for p in [
-      { wlan = "iot", item = "cameras", network = "cameras" },
-    ] : p if contains(keys(local.wlans_enabled), p.wlan) && contains(keys(local.id), p.network)
-  ]
-  ppsk_wlans = distinct([for p in local.ppsk : p.wlan])
 }
 
 data "onepassword_item" "wifi" {
-  for_each = toset(concat(keys(local.wlans_enabled), [for p in local.ppsk : p.item]))
+  for_each = local.wlans_enabled
   vault    = module.globals.onepassword.vault
   title    = module.globals.onepassword.items["wifi_${each.key}"]
 }
 
 resource "unifi_wlan" "this" {
-  for_each   = local.wlans_enabled
-  name       = var.ssids[each.key]
-  security   = "wpapsk"
-  passphrase = data.onepassword_item.wifi[each.key].password
-  # With private pre-shared keys the controller pins the SSID itself to the
-  # default network and routes each client by the key it used (listed below).
-  network_id    = contains(local.ppsk_wlans, each.key) ? local.id.mgmt : local.id[each.value.network]
+  for_each      = local.wlans_enabled
+  name          = var.ssids[each.key]
+  security      = "wpapsk"
+  passphrase    = data.onepassword_item.wifi[each.key].password
+  network_id    = local.id[each.value.network]
   user_group_id = data.unifi_client_qos_rate.default[0].id
   ap_group = {
     ids = [data.unifi_ap_group.default[0].id]
@@ -201,15 +200,4 @@ resource "unifi_wlan" "this" {
   bss_transition = !each.value.iot
   l2_isolation   = each.value.isolate
 
-  private_preshared_keys_enabled = contains(local.ppsk_wlans, each.key)
-  private_preshared_keys = contains(local.ppsk_wlans, each.key) ? concat(
-    [{
-      password   = data.onepassword_item.wifi[each.key].password
-      network_id = local.id[each.value.network]
-    }],
-    [for p in local.ppsk : {
-      password   = data.onepassword_item.wifi[p.item].password
-      network_id = local.id[p.network]
-    } if p.wlan == each.key],
-  ) : null
 }
