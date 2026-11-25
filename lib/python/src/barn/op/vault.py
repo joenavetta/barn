@@ -76,9 +76,14 @@ def generate_password(length: int) -> str:
     return Secrets.generate_password(recipe).password
 
 
-async def connect() -> Client:
-    """Sign in with the service account token if there is one, else the desktop app."""
-    if config.SERVICE_ACCOUNT_TOKEN:
+async def connect(write: bool = False) -> Client:
+    """Sign in to 1Password.
+
+    Reads use the service account token if there is one, else the desktop app.
+    The service account is read-only, so writes (creating or updating items)
+    always go through the desktop app and its Touch ID prompt.
+    """
+    if config.SERVICE_ACCOUNT_TOKEN and not write:
         return await _connect_service_account(config.SERVICE_ACCOUNT_TOKEN)
     return await _connect_desktop()
 

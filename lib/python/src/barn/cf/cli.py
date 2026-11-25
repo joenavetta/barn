@@ -38,8 +38,8 @@ def check_title(item: str | list[str]) -> str:
     return ItemName.parse(item).title
 
 
-async def open_vault() -> tuple[Client, str]:
-    client = await vault.connect()
+async def open_vault(write: bool = False) -> tuple[Client, str]:
+    client = await vault.connect(write=write)
     return client, await vault.vault_id(client)
 
 
@@ -59,7 +59,7 @@ async def rotate(args: argparse.Namespace) -> int:
             "to roll anyway and update it by hand."
         )
 
-    client, vid = await open_vault()
+    client, vid = await open_vault(write=True)
     target = await items.load(client, vid, title)
     account_id = target.require(items.ACCOUNT_ID)
     token_id = target.require(items.TOKEN_ID)
@@ -128,7 +128,7 @@ async def rotate(args: argparse.Namespace) -> int:
 async def link(args: argparse.Namespace) -> int:
     """Store account id and token id on an item; the id comes from verifying the token."""
     title = check_title(args.item)
-    client, vid = await open_vault()
+    client, vid = await open_vault(write=True)
     target = await items.load(client, vid, title)
     secret = target.require(items.SECRET)
     check = cloudflare.verify(args.account_id, secret)
@@ -166,8 +166,9 @@ def parser() -> argparse.ArgumentParser:
         description=(
             "Roll Cloudflare account API tokens kept in 1Password.\n\n"
             f"Uses the admin token in '{ADMIN_ITEM}' (override with BARN_CF_ADMIN_ITEM),\n"
-            f"read from the {config.VAULT} vault with the 1Password service account\n"
-            "token if there is one, else through the 1Password app (Touch ID)."
+            f"from the {config.VAULT} vault. rotate and link write to 1Password, so they\n"
+            "always use the 1Password app (Touch ID); show uses the read-only service\n"
+            "account token if there is one."
         ),
         formatter_class=RAW,
     )

@@ -5,8 +5,9 @@
   [stacks/stacks.md](stacks/stacks.md).
 - Every stack loads `modules/globals` for shared settings and reads secrets
   from the 1Password `Home Infrastructure` vault via the `onepassword` provider.
-  Run Terraform as [`barn-tf`](../bin/README.md), which gives the provider the
-  service account token or, without one, the desktop app (Touch ID); see
+  The provider takes its credentials from the environment: the read-only
+  service account token, or the desktop app (Touch ID) without one. Source
+  `lib/shell/op-env.sh` from `~/.zshrc` to set them; see
   [docs/1password-service-account.md](../docs/1password-service-account.md).
   Nothing secret goes in `.tf` files or tfvars.
 - Proxmox uses [`bpg/proxmox`](https://registry.terraform.io/providers/bpg/proxmox/latest).
@@ -16,7 +17,7 @@
 1. `mkdir stacks/<name>` with `backend.tf` (unique `prefix`), `providers.tf`
    (load `globals`, fetch the credential, configure the provider), `main.tf`.
 2. Add its 1Password item title to `modules/globals` (naming: [docs/secrets.md](../docs/secrets.md)).
-3. `barn-tf init -backend-config=../../backend.hcl`.
+3. `terraform init -backend-config=../../backend.hcl`.
 
 ## State
 

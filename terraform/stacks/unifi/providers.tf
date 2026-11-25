@@ -16,8 +16,9 @@ module "globals" {
   source = "../../modules/globals"
 }
 
-# Credentials come from the environment: run Terraform as `barn-tf`, which sets
-# OP_SERVICE_ACCOUNT_TOKEN (service account) or OP_ACCOUNT (desktop app, Touch ID).
+# Credentials come from the environment: OP_SERVICE_ACCOUNT_TOKEN (read-only
+# service account) or OP_ACCOUNT (desktop app, Touch ID), never both. Source
+# lib/shell/op-env.sh in your shell to set one (docs/1password-service-account.md).
 provider "onepassword" {}
 
 # API key for a Limited Admin, Local Access Only account on the controller
