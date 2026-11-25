@@ -26,6 +26,7 @@ output "onepassword" {
       wifi_home      = "unifi.wifi.home"
       wifi_iot       = "unifi.wifi.iot"
       wifi_guest     = "unifi.wifi.guest"
+      wifi_cameras   = "unifi.wifi.cameras" # second key on the IoT SSID; lands on Cameras
     }
   }
 }

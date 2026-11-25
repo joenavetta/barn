@@ -1,7 +1,7 @@
 variable "networks_enabled" {
   description = "Tagged networks (module.globals.networks keys) to create. Keep in step with stacks/opnsense networks_enabled"
   type        = list(string)
-  default     = ["iot", "trusted", "guest"]
+  default     = ["iot", "trusted", "guest", "cameras"]
 }
 
 variable "wlans_enabled" {

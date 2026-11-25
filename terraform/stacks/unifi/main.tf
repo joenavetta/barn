@@ -120,6 +120,8 @@ locals {
     # Smart plugs, speakers and other IoT. WPA2 only, and 2.4 GHz for the
     # devices that can't do 5 GHz. Not isolated: Home Assistant has to reach
     # these devices, and some of them talk to each other.
+    # Wi-Fi cameras join this SSID too, with their own key (unifi.wifi.cameras)
+    # that puts them on the Cameras VLAN: no internet, and no extra SSID.
     iot = {
       network = "iot"
       bands   = ["2g", "5g"]
@@ -141,10 +143,19 @@ locals {
   wlans_enabled = var.wlans_enabled ? {
     for k, w in local.wlans : k => w if contains(keys(local.id), w.network)
   } : {}
+
+  # Private pre-shared keys: extra passphrases on an SSID, each landing on
+  # its own VLAN (item = unifi.wifi.<item>). Once an SSID has any, its normal
+  # passphrase has to be listed too, on the SSID's own network.
+  ppsk = [
+    for p in [
+      { wlan = "iot", item = "cameras", network = "cameras" },
+    ] : p if contains(keys(local.wlans_enabled), p.wlan) && contains(keys(local.id), p.network)
+  ]
 }
 
 data "onepassword_item" "wifi" {
-  for_each = local.wlans_enabled
+  for_each = toset(concat(keys(local.wlans_enabled), [for p in local.ppsk : p.item]))
   vault    = module.globals.onepassword.vault
   title    = module.globals.onepassword.items["wifi_${each.key}"]
 }
@@ -179,4 +190,16 @@ resource "unifi_wlan" "this" {
 
   bss_transition = true # 802.11v roaming hints between the three APs
   l2_isolation   = each.value.isolate
+
+  private_preshared_keys_enabled = length([for p in local.ppsk : p if p.wlan == each.key]) > 0
+  private_preshared_keys = length([for p in local.ppsk : p if p.wlan == each.key]) > 0 ? concat(
+    [{
+      password   = data.onepassword_item.wifi[each.key].password
+      network_id = local.id[each.value.network]
+    }],
+    [for p in local.ppsk : {
+      password   = data.onepassword_item.wifi[p.item].password
+      network_id = local.id[p.network]
+    } if p.wlan == each.key],
+  ) : null
 }

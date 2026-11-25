@@ -17,7 +17,9 @@ enabled:
 | Guest (`cowshed-guest`) | Guest, VLAN 60 | WPA2 | 2.4, 5 GHz | Client isolation; OPNsense allows only DNS and internet |
 
 Passphrases are 1Password Password items `unifi.wifi.home`, `unifi.wifi.iot`
-and `unifi.wifi.guest`.
+and `unifi.wifi.guest`. The IoT SSID also has a second, camera-only key
+(`unifi.wifi.cameras`, a UniFi private pre-shared key) that puts a device on
+the Cameras VLAN (50, no internet). The Reolink E1 Pros join with that key.
 
 ## First apply: IoT (VLAN 40)
 
@@ -47,11 +49,12 @@ DHCP before anything joins them.
    barn-op new-item Password unifi.wifi.home  --target unifi --description "Home SSID (Trusted VLAN)" --prompt
    barn-op new-item Password unifi.wifi.iot   --target unifi --description "IoT SSID (IoT VLAN)" --prompt
    barn-op new-item Password unifi.wifi.guest --target unifi --description "Guest SSID (Guest VLAN)" --prompt
+   barn-op new-item Password unifi.wifi.cameras --target unifi --description "Camera key on the IoT SSID (Cameras VLAN)" --prompt
    ```
 
 2. Pick the SSID names in `var.ssids` (or `terraform.tfvars`).
-3. `terraform plan`. It should add the Trusted and Guest networks, the
-   "Access: trusted" profile and three SSIDs, and update the trunk profiles to
+3. `terraform plan`. It should add the Trusted, Guest and Cameras networks,
+   the "Access: trusted" and "Access: cameras" profiles and three SSIDs, and update the trunk profiles to
    carry the new VLANs. It must not replace the IoT network. If the AP group
    isn't called "All APs", the plan fails on `data.unifi_ap_group`; fix the
    name in `main.tf`.

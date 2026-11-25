@@ -7,7 +7,7 @@ variable "trunk_parent" {
 variable "networks_enabled" {
   description = "Tagged networks (module.globals.networks keys) whose VLAN devices exist. Add one at a time during the cutover"
   type        = list(string)
-  default     = ["iot", "trusted", "guest"]
+  default     = ["iot", "trusted", "guest", "cameras"]
 }
 
 # The OPNsense API can create VLAN devices but cannot assign them to interfaces.
@@ -25,8 +25,9 @@ variable "interfaces" {
     iot = "opt1" # vlan0.40, assigned 2026-11-24
     # trusted = "opt2"  # vlan0.20: uncomment with the identifier it gets
     # guest   = "opt3"  # vlan0.60: uncomment with the identifier it gets
+    # cameras = "opt4"  # vlan0.50: uncomment with the identifier it gets
     # mgmt      = "lan"
-    # servers, proxy, cameras, exitnode = "optN" as they move
+    # servers, proxy, exitnode = "optN" as they move
     # tailscale = "optN"   # the tailscale0 device from the os-tailscale plugin
   }
 }
