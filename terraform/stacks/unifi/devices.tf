@@ -14,7 +14,9 @@ locals {
 
   # switch-01 ports that carry something other than the switch default.
   # Ports not listed (Joe's Mac on 3, the spares) keep the default: native
-  # Management with every VLAN tagged.
+  # Management with every VLAN tagged. Only ports that already have an
+  # override on the controller (7 and 8) can be imported; the rest are
+  # created as new overrides.
   switch_01_ports = {
     1  = { name = "opnsense", profile = "Trunk: gateway" }
     2  = { name = "pve-02", profile = "Trunk: proxmox" }
@@ -62,7 +64,7 @@ resource "unifi_device" "ap" {
 # the controller.
 
 import {
-  for_each = local.switch_01_ports
+  for_each = { for k, v in local.switch_01_ports : k => v if contains(["7", "8"], k) }
   to       = unifi_device_port.switch_01[each.key]
   id       = "${local.switch_01_mac}/${each.key}"
 }
@@ -73,4 +75,9 @@ resource "unifi_device_port" "switch_01" {
   index           = tonumber(each.key)
   name            = each.value.name
   port_profile_id = local.port_profile_id[each.value.profile]
+
+  # What the controller stores for these ports today; set so the plan doesn't
+  # clear them.
+  poe_mode           = "auto"
+  setting_preference = "auto"
 }

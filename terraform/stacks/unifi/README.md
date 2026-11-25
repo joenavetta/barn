@@ -85,5 +85,7 @@ ap-01..03, and assigns the port profiles:
 | 20-22 | ap-01..03 | Trunk: AP |
 
 Other ports keep the switch default. When a device moves to another port,
-change `switch_01_ports` to match. Check the plan imports 3 devices and 8
-ports and only changes names, band steering and port profiles.
+change `switch_01_ports` to match. The first plan imports the 3 APs and
+ports 7 and 8 (the only ports that already had an override) and creates the
+other six port overrides. It should only change names, band steering and port
+profiles.
