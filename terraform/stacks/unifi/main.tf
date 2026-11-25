@@ -157,6 +157,7 @@ locals {
       { wlan = "iot", item = "cameras", network = "cameras" },
     ] : p if contains(keys(local.wlans_enabled), p.wlan) && contains(keys(local.id), p.network)
   ]
+  ppsk_wlans = distinct([for p in local.ppsk : p.wlan])
 }
 
 data "onepassword_item" "wifi" {
@@ -166,11 +167,13 @@ data "onepassword_item" "wifi" {
 }
 
 resource "unifi_wlan" "this" {
-  for_each      = local.wlans_enabled
-  name          = var.ssids[each.key]
-  security      = "wpapsk"
-  passphrase    = data.onepassword_item.wifi[each.key].password
-  network_id    = local.id[each.value.network]
+  for_each   = local.wlans_enabled
+  name       = var.ssids[each.key]
+  security   = "wpapsk"
+  passphrase = data.onepassword_item.wifi[each.key].password
+  # With private pre-shared keys the controller pins the SSID itself to the
+  # default network and routes each client by the key it used (listed below).
+  network_id    = contains(local.ppsk_wlans, each.key) ? local.id.mgmt : local.id[each.value.network]
   user_group_id = data.unifi_client_qos_rate.default[0].id
   ap_group = {
     ids = [data.unifi_ap_group.default[0].id]
@@ -194,11 +197,12 @@ resource "unifi_wlan" "this" {
   enhanced_iot = each.value.iot
   pmf_mode     = each.value.wpa3 ? "required" : (each.value.iot ? "disabled" : "optional")
 
-  bss_transition = true # 802.11v roaming hints between the three APs
+  # 802.11v roaming hints between the three APs; enhanced_iot turns it off.
+  bss_transition = !each.value.iot
   l2_isolation   = each.value.isolate
 
-  private_preshared_keys_enabled = length([for p in local.ppsk : p if p.wlan == each.key]) > 0
-  private_preshared_keys = length([for p in local.ppsk : p if p.wlan == each.key]) > 0 ? concat(
+  private_preshared_keys_enabled = contains(local.ppsk_wlans, each.key)
+  private_preshared_keys = contains(local.ppsk_wlans, each.key) ? concat(
     [{
       password   = data.onepassword_item.wifi[each.key].password
       network_id = local.id[each.value.network]
