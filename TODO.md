@@ -18,10 +18,6 @@ is deferred; delete it in the PR that finishes it.
 
 ## Terraform globals
 
-- [ ] **Land the network globals** (`networks`, `hosts`, `proxied_apps`) from
-  the network draft. Then switch `terraform/stacks/pve-01/main.tf` from its
-  local Management IPs to `module.globals.networks` / `hosts`. The draft
-  already names the switch `switch-01` (10.42.1.2).
 - [ ] **Cloudflare item name mismatch.** Globals reads
   `terraform.cloudflare.default`, but the vault item is
   `terraform.cloudflare.dns`. Rename one of them before running the
@@ -39,9 +35,25 @@ is deferred; delete it in the PR that finishes it.
   `opnsense_unbound_forward`. The provider can't manage Dnsmasq DHCP ranges,
   so those stay manual.
 
-## UniFi
+## UniFi and Wi-Fi
 
-- [ ] **`unifi` stack.** Create the `terraform.unifi.default` API key on the
-  UniFi OS Server (https://unifi.home.cowshed.cc:11443), then build
-  `terraform/stacks/unifi` (networks, port profiles, SSIDs) from the network
-  draft.
+- [ ] **Admin devices on Trusted.** Give Joe's phone and laptop Dnsmasq
+  reservations on Trusted and list them in the opnsense `admin_devices`
+  variable, so they can reach Management and Servers from Wi-Fi. iPhones use a
+  private (random) Wi-Fi address per network: set it to Off or Fixed for
+  cowshed first, or the reservation won't match.
+- [ ] **mDNS between Trusted and IoT.** AirPlay, casting and HomeKit discovery
+  need an mDNS repeater (os-mdns-repeater) on OPNsense for Trusted and IoT.
+  The firewall already allows Trusted to IoT.
+- [ ] **Assign the trunk profiles to switch ports.** No port uses them yet;
+  every uplink is on the switch default (carry everything). switch-01 port 1
+  (OPNsense) gets "Trunk: gateway", ports 20-22 (APs) "Trunk: AP", and the
+  pve-01/pve-02 ports "Trunk: proxmox". Use `unifi_device_port`.
+- [ ] **Band steering off on the APs** (set per AP since UniFi Network 10),
+  with `unifi_device`. Manual for now.
+- [ ] **UniFi "Default" network subnet.** It still says 192.168.1.0/24.
+  OPNsense serves Management (10.42.1.0/24), so it's cosmetic, but set it to
+  10.42.1.0/24 (gateway 10.42.1.1) so UniFi's client list matches, ideally
+  through Terraform.
+- [ ] **Unused switch ports.** Add a "Disabled" port profile for spare ports,
+  and make Trusted, not Management, the native network on ordinary ports.

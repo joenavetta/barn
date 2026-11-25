@@ -31,6 +31,43 @@ default "LAN to any" rule keeps admin access to every VLAN until then.
 6. Check that Firewall > Rules > IoT has the automatic DHCP allow rule. If it
    doesn't, devices on IoT won't get an address.
 
+## Second apply: Trusted (VLAN 20), Guest (VLAN 60), Cameras (VLAN 50)
+
+Do this before the UniFi stack, so the Home and Guest SSIDs have DHCP
+when they come up.
+
+1. `terraform apply`. `networks_enabled` now lists `trusted` and `guest`, so
+   this creates `vlan0.20` and `vlan0.60`. No rules yet. Adding `cameras`
+   afterwards creates `vlan0.50` the same way.
+2. In the GUI:
+   - Interfaces > Assignments: add `vlan0.20` as "Trusted" with static IPv4
+     10.42.20.1/24, `vlan0.60` as "Guest" with 10.42.60.1/24, and `vlan0.50`
+     as "Cameras" with 10.42.50.1/24. Enable them.
+   - Services > Dnsmasq DNS & DHCP > General: add Trusted, Guest and Cameras
+     to Interfaces.
+   - Dnsmasq > DHCP ranges: Trusted 10.42.20.100 to 10.42.20.199, and Guest
+     10.42.60.100 to 10.42.60.199 (a shorter lease, like 4h, suits guests),
+     and Cameras 10.42.50.100 to 10.42.50.199.
+   - Press **Apply** on the Dnsmasq page (or restart the service) after
+     adding the interfaces and ranges. Until it reloads, Dnsmasq ignores DHCP
+     requests on the new VLANs and clients end up with 169.254.x addresses.
+3. Uncomment `trusted`, `guest` and `cameras` in `interfaces` with the identifiers they
+   got (`optN`), and apply again. Check the plan only adds rules on those two
+   interfaces:
+   - Trusted: DNS on the gateway, the reverse proxy, IoT, internet, admin
+     devices to Management/Servers/Cameras, then a logged block.
+   - Guest: DNS on the gateway, internet, then a logged block. Guests can't
+     reach any home network.
+   - Cameras: NTP from the gateway, then a logged block. No DNS and no
+     internet, so set each camera's NTP server to 10.42.50.1. The Synology
+     reaches the cameras from its side.
+4. Check that Firewall > Rules > Trusted, Guest and Cameras have the automatic DHCP
+   allow rule.
+
+`admin_devices` is still empty, so no phone or laptop on Trusted can reach
+Management yet. Admin work stays on a wired Management port (or Tailscale)
+until those devices get reservations.
+
 Not here yet: Kea, mDNS repeater (os-mdns-repeater: Trusted <-> IoT), the
 Tailscale plugin settings (GUI only), DHCP ranges (the provider can't manage
 them), and importing the hand-made Dnsmasq hosts.
