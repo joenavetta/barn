@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # barn-cf: roll Cloudflare API tokens kept in 1Password (see `barn-cf --help`).
-# Thin wrapper: loads config/barn.env (shell environment wins), then runs the
-# code in lib/python with uv. Works from any directory, including through a
+# Thin wrapper: loads config/barn.env (shell environment wins) and the 1Password
+# service account token if there is one, then runs the code in lib/python with uv. Works from any directory, including through a
 # symlink, once bin/ is on PATH.
 set -euo pipefail
 
@@ -17,6 +17,7 @@ export BARN_ROOT
 # shellcheck source=../lib/shell/barn-env.sh
 . "$BARN_ROOT/lib/shell/barn-env.sh"
 barn_load_env "$BARN_ROOT/config/barn.env"
+barn_op_auth
 
 command -v uv >/dev/null || { echo "error: uv not found (brew install uv)" >&2; exit 1; }
 exec uv run --quiet --project "$BARN_ROOT/lib/python" barn-cf "$@"

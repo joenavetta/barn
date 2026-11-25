@@ -166,7 +166,8 @@ def parser() -> argparse.ArgumentParser:
         description=(
             "Roll Cloudflare account API tokens kept in 1Password.\n\n"
             f"Uses the admin token in '{ADMIN_ITEM}' (override with BARN_CF_ADMIN_ITEM),\n"
-            f"read from the {config.VAULT} vault through the 1Password app (Touch ID)."
+            f"read from the {config.VAULT} vault with the 1Password service account\n"
+            "token if there is one, else through the 1Password app (Touch ID)."
         ),
         formatter_class=RAW,
     )

@@ -18,12 +18,17 @@ export PATH="$HOME/src/github.com/joenavetta/barn/bin:$PATH"   # e.g. in ~/.zshr
 | `barn-op list-items [--service S] [--subsystem S] [--category C] [--target T] [--json]` | List items in the vault with their category and target (titles and tags only, no secrets). |
 | `barn-op proxmox-token <node>` | Create the Terraform user, role, and token on a Proxmox node over SSH and store it as `terraform.proxmox.<node>`. |
 | `barn-op completion {zsh,bash}` | Print a shell completion script (see below). |
+| `barn-tf <terraform args>` | Run `terraform` with the 1Password provider's credentials set (service account token, or the desktop app). Use it instead of `terraform` in a stack dir: `barn-tf plan`. |
 | `barn-pve-cloud-template` | Build a cloud-init VM template. Plain bash; copy it to the Proxmox node and run it there. |
 
-`barn-op` uses the [1Password Python SDK](https://github.com/1Password/onepassword-sdk-python)
-with desktop app auth, so each run gets a Touch ID prompt. Turn on
-**Settings > Developer > Integrate with other apps** in the 1Password app first.
-Defaults (vault, account name, domain) are in
+`barn-op` and `barn-cf` use the [1Password Python SDK](https://github.com/1Password/onepassword-sdk-python).
+If a 1Password service account token is set up (in the macOS Keychain, see
+[docs/1password-service-account.md](../docs/1password-service-account.md)),
+they use it and there's no prompt. Otherwise they use desktop app auth and
+each run gets a Touch ID prompt; turn on **Settings > Developer > Integrate
+with other apps** in the 1Password app for that. `BARN_OP_AUTH` picks between
+them (`auto`, `service-account`, `desktop`).
+Defaults (vault, account, auth, domain) are in
 [`config/barn.env`](../config/barn.env). The launchers load that file with
 `lib/shell/barn-env.sh`, and any variable already set in your shell wins, e.g.
 `BARN_OP_VAULT=Scratch barn-op list-items`. Secrets are never taken as command-line arguments: SSH keys and

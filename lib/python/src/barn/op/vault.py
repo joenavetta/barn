@@ -1,4 +1,4 @@
-"""1Password SDK calls: desktop app auth, vault lookup, listing and creating items."""
+"""1Password SDK calls: auth, vault lookup, listing and creating items."""
 
 from __future__ import annotations
 
@@ -77,7 +77,34 @@ def generate_password(length: int) -> str:
 
 
 async def connect() -> Client:
-    """Authenticate through the desktop app (Touch ID prompt)."""
+    """Sign in with the service account token if there is one, else the desktop app."""
+    if config.SERVICE_ACCOUNT_TOKEN:
+        return await _connect_service_account(config.SERVICE_ACCOUNT_TOKEN)
+    return await _connect_desktop()
+
+
+async def _connect_service_account(token: str) -> Client:
+    try:
+        return await Client.authenticate(
+            auth=token,
+            integration_name=config.INTEGRATION_NAME,
+            integration_version=config.INTEGRATION_VERSION,
+        )
+    except Exception as e:
+        raise SystemExit(
+            f"error: can't sign in to 1Password with the service account token ({e}). "
+            "It may have expired or been revoked: make a new one and store it in the "
+            "Keychain (docs/1password-service-account.md), or run once with "
+            "BARN_OP_AUTH=desktop to use the 1Password app instead."
+        ) from e
+
+
+async def _connect_desktop() -> Client:
+    if not config.ACCOUNT:
+        raise SystemExit(
+            "error: no OP_SERVICE_ACCOUNT_TOKEN and BARN_OP_ACCOUNT is not set. Run through "
+            "bin/, which loads config/barn.env and the Keychain token, or set one of them."
+        )
     try:
         return await Client.authenticate(
             auth=DesktopAuth(account_name=config.ACCOUNT),
@@ -98,6 +125,10 @@ async def vault_id(client: Client, name: str = config.VAULT) -> str:
     for vault in await client.vaults.list():
         if vault.title == name:
             return vault.id
+    if config.SERVICE_ACCOUNT_TOKEN:
+        raise SystemExit(
+            f"error: vault '{name}' not found, or the service account wasn't given access to it"
+        )
     raise SystemExit(f"error: vault '{name}' not found")
 
 

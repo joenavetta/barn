@@ -14,8 +14,7 @@ output "internal_domain" {
 output "onepassword" {
   description = "Vault and item titles Terraform reads secrets from (naming: docs/secrets.md)"
   value = {
-    account = "PW5WK2EEO5HM5L4UG46ABS37TA" # desktop app integration (Touch ID)
-    vault   = "Home Infrastructure"
+    vault = "Home Infrastructure"
     items = {
       proxmox_pve_01 = "terraform.proxmox.pve-01"
       proxmox_pve_02 = "terraform.proxmox.pve-02"

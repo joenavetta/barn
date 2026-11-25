@@ -16,10 +16,9 @@ module "globals" {
   source = "../../modules/globals"
 }
 
-# Uses the 1Password desktop app; each run is approved with Touch ID.
-provider "onepassword" {
-  account = module.globals.onepassword.account
-}
+# Credentials come from the environment: run Terraform as `barn-tf`, which sets
+# OP_SERVICE_ACCOUNT_TOKEN (service account) or OP_ACCOUNT (desktop app, Touch ID).
+provider "onepassword" {}
 
 data "onepassword_item" "cloudflare" {
   vault = module.globals.onepassword.vault

@@ -4,8 +4,8 @@ Guests on pve-01 (MS-03). State prefix `stacks/pve-01`.
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars   # set the UniFi OS Server link
-terraform init -backend-config=../../backend.hcl
-terraform plan
+barn-tf init -backend-config=../../backend.hcl
+barn-tf plan
 ```
 
 ## TODO: real certificate
