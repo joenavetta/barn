@@ -48,6 +48,9 @@ when they come up.
    - Dnsmasq > DHCP ranges: Trusted 10.42.20.100 to 10.42.20.199, and Guest
      10.42.60.100 to 10.42.60.199 (a shorter lease, like 4h, suits guests),
      and Cameras 10.42.50.100 to 10.42.50.199.
+   - Press **Apply** on the Dnsmasq page (or restart the service) after
+     adding the interfaces and ranges. Until it reloads, Dnsmasq ignores DHCP
+     requests on the new VLANs and clients end up with 169.254.x addresses.
 3. Uncomment `trusted`, `guest` and `cameras` in `interfaces` with the identifiers they
    got (`optN`), and apply again. Check the plan only adds rules on those two
    interfaces:

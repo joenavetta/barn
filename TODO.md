@@ -39,7 +39,9 @@ is deferred; delete it in the PR that finishes it.
 
 - [ ] **Admin devices on Trusted.** Give Joe's phone and laptop Dnsmasq
   reservations on Trusted and list them in the opnsense `admin_devices`
-  variable, so they can reach Management and Servers from Wi-Fi.
+  variable, so they can reach Management and Servers from Wi-Fi. iPhones use a
+  private (random) Wi-Fi address per network: set it to Off or Fixed for
+  cowshed first, or the reservation won't match.
 - [ ] **mDNS between Trusted and IoT.** AirPlay, casting and HomeKit discovery
   need an mDNS repeater (os-mdns-repeater) on OPNsense for Trusted and IoT.
   The firewall already allows Trusted to IoT.
