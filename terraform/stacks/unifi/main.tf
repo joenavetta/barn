@@ -41,8 +41,8 @@ locals {
     "Trunk: gateway" = ["trusted", "servers", "proxy", "iot", "cameras", "guest", "exitnode"]
     # pve-01 and pve-02 (vmbr0 VLAN-aware): host on Management, guests tagged.
     "Trunk: proxmox" = ["servers", "proxy", "iot", "exitnode"]
-    # U7 APs: one SSID per VLAN.
-    "Trunk: AP" = ["trusted", "iot", "guest"]
+    # U7 APs: the SSIDs' VLANs, plus Cameras for the camera key on the IoT SSID.
+    "Trunk: AP" = ["trusted", "iot", "guest", "cameras"]
   }
   access = {
     "Access: trusted" = "trusted" # the 4 wired docks
@@ -90,7 +90,8 @@ resource "unifi_port_profile" "access" {
 }
 
 # ---- Wi-Fi ---------------------------------------------------------------
-# One SSID per client network. Management, Servers and Cameras stay wired.
+# One SSID per client network. Management and Servers stay wired; Wi-Fi
+# cameras reach the Cameras VLAN through a second key on the IoT SSID.
 # Passphrases come from 1Password (unifi.wifi.<key>); names from var.ssids.
 #
 # Band steering moved from the SSID to the AP in UniFi Network 10, so it isn't

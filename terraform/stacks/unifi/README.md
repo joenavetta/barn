@@ -64,4 +64,4 @@ DHCP before anything joins them.
 5. On each AP (Devices > the AP > Settings), turn Band Steering off. It's set
    on the AP now, not the SSID.
 6. Optional: give the AP switch ports the "Trunk: AP" profile, so they carry
-   only Management, Trusted, IoT and Guest instead of every VLAN.
+   only Management, Trusted, IoT, Guest and Cameras instead of every VLAN.
