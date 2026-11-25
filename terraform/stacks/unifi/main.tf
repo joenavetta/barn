@@ -199,5 +199,4 @@ resource "unifi_wlan" "this" {
   # 802.11v roaming hints between the three APs; enhanced_iot turns it off.
   bss_transition = !each.value.iot
   l2_isolation   = each.value.isolate
-
 }
