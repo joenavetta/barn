@@ -3,7 +3,8 @@
 All credentials for this setup live in the **`Home Infrastructure`** vault (set in
 [`config/barn.env`](../config/barn.env)). Nothing
 secret is committed to this repo. Create items with [`barn-op new-item`](../bin/README.md) so the names, tags,
-and notes stay consistent.
+and notes stay consistent. barn reads with a read-only service account when one
+is set up: [1password-service-account.md](1password-service-account.md).
 
 ## Item title
 

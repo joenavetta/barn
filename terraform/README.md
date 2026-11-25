@@ -4,9 +4,12 @@
   Reusable modules are in `modules/`. The list of planned stacks is in
   [stacks/stacks.md](stacks/stacks.md).
 - Every stack loads `modules/globals` for shared settings and reads secrets
-  from the 1Password `Home Infrastructure` vault via the `onepassword` provider
-  (desktop app integration, approved with Touch ID). Nothing secret goes in `.tf`
-  files or tfvars.
+  from the 1Password `Home Infrastructure` vault via the `onepassword` provider.
+  The provider takes its credentials from the environment: the read-only
+  service account token, or the desktop app (Touch ID) without one. Source
+  `lib/shell/op-env.sh` from `~/.zshrc` to set them; see
+  [docs/1password-service-account.md](../docs/1password-service-account.md).
+  Nothing secret goes in `.tf` files or tfvars.
 - Proxmox uses [`bpg/proxmox`](https://registry.terraform.io/providers/bpg/proxmox/latest).
 
 ## Adding a stack

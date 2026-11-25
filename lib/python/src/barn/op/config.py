@@ -18,8 +18,12 @@ def _require(name: str) -> str:
 
 
 VAULT = _require("BARN_OP_VAULT")
+# Service account token (bin/ launchers load it from the macOS Keychain). When
+# it's set, barn uses it; otherwise the desktop app, signed in to ACCOUNT.
+SERVICE_ACCOUNT_TOKEN = os.environ.get("OP_SERVICE_ACCOUNT_TOKEN") or None
 # Account name from the 1Password app's sidebar (the SDK rejects account IDs).
-ACCOUNT = _require("BARN_OP_ACCOUNT")
+# Only needed for desktop app auth.
+ACCOUNT = os.environ.get("BARN_OP_ACCOUNT") or None
 HOME_DOMAIN = _require("BARN_HOME_DOMAIN")
 
 REPO_URL = "github.com/joenavetta/barn"

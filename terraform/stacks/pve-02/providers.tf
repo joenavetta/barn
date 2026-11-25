@@ -16,10 +16,10 @@ module "globals" {
   source = "../../modules/globals"
 }
 
-# Uses the 1Password desktop app; each run is approved with Touch ID.
-provider "onepassword" {
-  account = module.globals.onepassword.account
-}
+# Credentials come from the environment: OP_SERVICE_ACCOUNT_TOKEN (read-only
+# service account) or OP_ACCOUNT (desktop app, Touch ID), never both. Source
+# lib/shell/op-env.sh in your shell to set one (docs/1password-service-account.md).
+provider "onepassword" {}
 
 data "onepassword_item" "proxmox" {
   vault = module.globals.onepassword.vault

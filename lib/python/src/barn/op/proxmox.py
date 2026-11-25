@@ -49,7 +49,7 @@ async def create_terraform_token(node: str) -> None:
     name = ItemName("terraform", "proxmox", node)
 
     # Check 1Password first so we don't mint a token we can't store.
-    client = await vault.connect()
+    client = await vault.connect(write=True)
     vid = await vault.vault_id(client)
     if await vault.item_exists(client, vid, name.title):
         raise SystemExit(

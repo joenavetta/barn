@@ -152,7 +152,7 @@ def build_item(args: argparse.Namespace) -> tuple[vault.NewItem, str | None]:
 
 
 async def create_item(item: vault.NewItem) -> None:
-    client = await vault.connect()
+    client = await vault.connect(write=True)
     vid = await vault.vault_id(client)
     if await vault.item_exists(client, vid, item.title):
         raise SystemExit(
