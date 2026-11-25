@@ -109,7 +109,11 @@ data "unifi_client_qos_rate" "default" {
 
 locals {
   wlans = {
-    # Phones, laptops, tablets. WPA2/WPA3 mixed; 6 GHz clients use WPA3.
+    # Phones, laptops, tablets, all WPA3-capable, so WPA3 only: no offline
+    # guessing from a captured handshake, no downgrade to WPA2, PMF required,
+    # and 6 GHz needs WPA3 anyway. No 2.4 GHz: these clients all do 5 GHz, and
+    # with band steering off they'd linger on 2.4 at the edge of range. The
+    # printer is wired; anything WPA2-only belongs on IoT or Guest.
     home = {
       network = "trusted"
       bands   = ["5g", "6g"]
@@ -180,13 +184,14 @@ resource "unifi_wlan" "this" {
   wpa = {
     mode = "wpa2"
   }
+  # wpa3 = true means WPA3 only (SAE, no WPA2 transition, PMF required).
   wpa3 = {
     support    = each.value.wpa3
-    transition = each.value.wpa3
+    transition = false
   }
   # enhanced_iot forces WPA2, PMF off and DTIM 1 for older IoT radios.
   enhanced_iot = each.value.iot
-  pmf_mode     = each.value.iot ? "disabled" : "optional"
+  pmf_mode     = each.value.wpa3 ? "required" : (each.value.iot ? "disabled" : "optional")
 
   bss_transition = true # 802.11v roaming hints between the three APs
   l2_isolation   = each.value.isolate

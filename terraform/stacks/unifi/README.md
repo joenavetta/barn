@@ -12,7 +12,7 @@ enabled:
 
 | SSID (`var.ssids`) | Network | Security | Bands | Notes |
 |---|---|---|---|---|
-| Home (`cowshed`) | Trusted, VLAN 20 | WPA2/WPA3 | 5, 6 GHz | 6 GHz clients use WPA3 |
+| Home (`cowshed`) | Trusted, VLAN 20 | WPA3 only, PMF required | 5, 6 GHz | No 2.4 GHz; WPA2-only devices use IoT or Guest |
 | IoT (`cowshed-iot`) | IoT, VLAN 40 | WPA2 | 2.4, 5 GHz | Enhanced IoT on, not isolated so HA can reach devices |
 | Guest (`cowshed-guest`) | Guest, VLAN 60 | WPA2 | 2.4, 5 GHz | Client isolation; OPNsense allows only DNS and internet |
 
