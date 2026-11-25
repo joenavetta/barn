@@ -22,10 +22,10 @@ variable "interfaces" {
   # "LAN to any" rule keeps admin access to every VLAN until then, and adding
   # it here would put a block-everything-else rule on LAN.
   default = {
-    iot = "opt1" # vlan0.40, assigned 2026-11-24
-    # trusted = "opt2"  # vlan0.20: uncomment with the identifier it gets
-    # guest   = "opt3"  # vlan0.60: uncomment with the identifier it gets
-    # cameras = "opt4"  # vlan0.50: uncomment with the identifier it gets
+    iot     = "opt1" # vlan0.40, assigned 2026-11-24
+    trusted = "opt2" # vlan0.20, assigned 2026-11-25
+    cameras = "opt3" # vlan0.50, assigned 2026-11-25
+    guest   = "opt4" # vlan0.60, assigned 2026-11-25
     # mgmt      = "lan"
     # servers, proxy, exitnode = "optN" as they move
     # tailscale = "optN"   # the tailscale0 device from the os-tailscale plugin
