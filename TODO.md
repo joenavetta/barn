@@ -45,12 +45,6 @@ is deferred; delete it in the PR that finishes it.
 - [ ] **mDNS between Trusted and IoT.** AirPlay, casting and HomeKit discovery
   need an mDNS repeater (os-mdns-repeater) on OPNsense for Trusted and IoT.
   The firewall already allows Trusted to IoT.
-- [ ] **Assign the trunk profiles to switch ports.** No port uses them yet;
-  every uplink is on the switch default (carry everything). switch-01 port 1
-  (OPNsense) gets "Trunk: gateway", ports 20-22 (APs) "Trunk: AP", and the
-  pve-01/pve-02 ports "Trunk: proxmox". Use `unifi_device_port`.
-- [ ] **Band steering off on the APs** (set per AP since UniFi Network 10),
-  with `unifi_device`. Manual for now.
 - [ ] **UniFi "Default" network subnet.** It still says 192.168.1.0/24.
   OPNsense serves Management (10.42.1.0/24), so it's cosmetic, but set it to
   10.42.1.0/24 (gateway 10.42.1.1) so UniFi's client list matches, ideally

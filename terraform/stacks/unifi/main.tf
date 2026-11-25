@@ -33,7 +33,7 @@ locals {
 }
 
 # ---- Port profiles -------------------------------------------------------
-# Assign these to switch ports in the UI (or with unifi_device later).
+# Assigned to switch-01 ports in devices.tf.
 
 locals {
   trunks = {
@@ -97,9 +97,8 @@ resource "unifi_port_profile" "access" {
 # cameras). Management and Servers stay wired.
 # Passphrases come from 1Password (unifi.wifi.<key>); names from var.ssids.
 #
-# Band steering moved from the SSID to the AP in UniFi Network 10, so it isn't
-# set here. Keep it off on the APs: IoT devices that only do 2.4 GHz get
-# confused when the AP pushes them to 5 GHz.
+# Band steering is set per AP (devices.tf), not per SSID, since UniFi
+# Network 10.
 
 data "unifi_ap_group" "default" {
   count = var.wlans_enabled ? 1 : 0

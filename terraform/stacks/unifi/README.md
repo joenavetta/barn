@@ -64,7 +64,26 @@ DHCP before anything joins them.
 4. `terraform apply`, then check Settings > Networks lists Trusted and Guest
    with their VLAN IDs. If a port or SSID shows "20 (undefined)" or
    "60 (undefined)", open that network in the UI and click Save once.
-5. On each AP (Devices > the AP > Settings), turn Band Steering off. It's set
-   on the AP now, not the SSID.
-6. Optional: give the AP switch ports the "Trunk: AP" profile, so they carry
-   only Management, Trusted, IoT, Guest and Cameras instead of every VLAN.
+5. Join each SSID and check the address: cowshed 10.42.20.x, cowshed-iot
+   10.42.40.x, cowshed-guest 10.42.60.x, cowshed-cameras 10.42.50.x. If they
+   get 169.254.x, Dnsmasq on OPNsense needs an Apply (see stacks/opnsense).
+
+## APs and switch ports (devices.tf)
+
+The three APs and the switch-01 ports are imported by MAC on the first plan
+(import blocks in `devices.tf`), so Terraform takes them over without
+re-adopting anything. It sets band steering off on each AP, names them
+ap-01..03, and assigns the port profiles:
+
+| Port | Device | Profile |
+|---|---|---|
+| 1 | OPNsense (igc0) | Trunk: gateway |
+| 2 | pve-02 | Trunk: proxmox |
+| 4 | pve-01 | Trunk: proxmox |
+| 7 | SensorPush | Access: iot |
+| 8 | Home Assistant | Access: iot |
+| 20-22 | ap-01..03 | Trunk: AP |
+
+Other ports keep the switch default. When a device moves to another port,
+change `switch_01_ports` to match. Check the plan imports 3 devices and 8
+ports and only changes names, band steering and port profiles.
