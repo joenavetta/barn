@@ -46,5 +46,9 @@ is deferred; delete it in the PR that finishes it.
 - [ ] **AP settings in Terraform.** Band steering off (per AP since UniFi
   Network 10) and the "Trunk: AP" port profile on the AP switch ports, with
   `unifi_device` / `unifi_device_port`. Both are manual for now.
+- [ ] **UniFi "Default" network subnet.** It still says 192.168.1.0/24.
+  OPNsense serves Management (10.42.1.0/24), so it's cosmetic, but set it to
+  10.42.1.0/24 (gateway 10.42.1.1) so UniFi's client list matches, ideally
+  through Terraform.
 - [ ] **Unused switch ports.** Add a "Disabled" port profile for spare ports,
   and make Trusted, not Management, the native network on ordinary ports.
